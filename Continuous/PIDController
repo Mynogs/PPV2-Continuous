@@ -1,0 +1,81 @@
+-- 02.12.2017 17:32:47 AR V1.0a
+
+generic = {
+  parameter = {
+    p = 1.0,
+    i = 0.0,
+    d = 0.0,
+    iL = 0.0,
+  },
+
+  init = function(self)
+    block.setInputsPinCount(1)
+    block.setOutputsPinCount(1)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'PID Controller', 'Proportional–integral–derivative controller')
+    gui.add('Edit', 'EditP', 'Proportional', {Left = 200})
+    gui.add('Edit', 'EditI', 'Integral', {Left = 200})
+    gui.add('Edit', 'EditD', 'Differential', {Left = 200})
+    gui.add('Edit', 'EditIL', 'Integral windup limit (0: off)', {Left = 200})
+    gui.set('EditP', 'Number', self.parameter.p)
+    gui.set('EditI', 'Number', self.parameter.i)
+    gui.set('EditD', 'Number', self.parameter.d)
+    gui.set('EditIL', 'Number', self.parameter.iL)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.p = gui.get('EditP', 'Number')
+    self.parameter.i = gui.get('EditI', 'Number')
+    self.parameter.d = gui.get('EditD', 'Number' )
+    self.parameter.iL = gui.get('EditIL', 'Number' )
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(0x50, "'PID'")
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+        end
+
+        block.step = function(a)
+          block.i = (block.i or 0) + a * II * sim.stepRateS
+          local d = (a - (block.a or a)) * DD * sim.stepRateS
+          print(block.i)
+IL
+          block.a = a
+          return a * PP + block.i + d
+        end
+
+        return block
+      ]==]
+    local iL = [[
+          local iL = ]] .. self.parameter.iL .. '\n' .. [[
+          if block.i > iL then
+            block.i = iL
+          elseif block.i < -iL then
+            block.i = -iL
+          end
+    ]]
+    local replaces = {
+      ['PP'] = self.parameter.p,
+      ['II'] = self.parameter.i,
+      ['DD'] = self.parameter.d,
+      ['IL'] = self.parameter.iL > 0.0 and iL or '',
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+

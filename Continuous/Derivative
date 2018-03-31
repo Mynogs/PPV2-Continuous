@@ -1,0 +1,51 @@
+-- V1.0a AR
+-- 30.12.2016 10:09:12 AR V1.0b
+-- 21.05.2017 10:49:46 AR V1.0c
+-- 09.07.2017 10:11:29 AR V1.0d
+
+generic = {
+  parameter = {
+    initalValue = 0.0,
+  },
+
+  init = function(self)
+    block.setInputsPinCount(1)
+    block.setOutputsPinCount(1)
+    block.modifyFlags('SupressStartFunctionCall', true)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Derivative', 'Numerical derivative:  da/dt')
+    gui.setSize()
+  end,
+
+  apply = function(self)
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(0x50, "'da/dt'")
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {
+
+          step = function(a)
+            local q = (a - (block.a or a)) * sim.stepRateS
+            block.a = a
+            return q
+          end
+
+        }
+        return block
+      ]==]
+    return source
+  end,
+
+}
+

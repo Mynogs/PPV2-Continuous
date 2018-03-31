@@ -1,0 +1,58 @@
+-- V1.0a AR
+-- 30.12.2016 15:30:41 AR V1.0b
+-- 21.05.2017 10:50:10 AR V1.0c
+-- 09.07.2017 10:09:52 AR V1.0d
+
+generic = {
+  parameter = {
+    initalValue = 0.0,
+  },
+
+  init = function(self)
+    block.setInputsPinCount(1)
+    block.setOutputsPinCount(1)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Integrator', 'Continuous-time integration of the input signal')
+    gui.add('Edit', 'EditInitalValue', 'Inital value')
+    gui.set('EditInitalValue', 'Number', self.parameter.initalValue)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.initalValue = gui.get('EditInitalValue', 'Number')
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(0x50, "'1\\n\\xE2\\x80\\x95\\xE2\\x80\\x95\\nn'")
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+          block.value = INITALVALUE
+        end
+
+        block.step = function(a)
+          block.value = block.value + a * sim.stepRateS
+          return block.value
+        end
+
+        return block
+      ]==]
+    local replaces = {
+      ['INITALVALUE'] = self.parameter.initalValue,
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+

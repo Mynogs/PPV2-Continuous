@@ -1,0 +1,72 @@
+-- V1.0a AR
+-- 30.12.2016 11:16:26 AR V1.0b
+-- 21.05.2017 10:50:32 AR V1.0c
+-- 09.07.2017 10:10:27 AR V1.0d
+
+generic = {
+  parameter = {
+    initalValue = 0.0,
+    upperSaturation = 1.0,
+    lowerSaturation = 0.0,
+  },
+
+  init = function(self)
+    block.setInputsPinCount(1)
+    block.setOutputsPinCount(1)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Integrator', 'Continuous-time integration of the input signal')
+    gui.add('Edit', 'EditInitalValue', 'Inital value')
+    gui.set('EditInitalValue', 'Number', self.parameter.initalValue)
+    gui.add('Edit', 'EditUpperSaturation', 'Upper saturation')
+    gui.set('EditUpperSaturation', 'Number', self.parameter.upperSaturation)
+    gui.add('Edit', 'EditLowerSaturation', 'Lower saturation')
+    gui.set('EditLowerSaturation', 'Number', self.parameter.lowerSaturation)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.initalValue = gui.get('EditInitalValue', 'Number')
+    self.parameter.upperSaturation = gui.get('EditUpperSaturation', 'Number')
+    self.parameter.lowerSaturation = gui.get('EditLowerSaturation', 'Number')
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(
+      0x50,
+      "'1\\n\\xE2\\x80\\x95\\xE2\\x80\\x95\\nn'",
+      'draw.line(px(60), py(90), px(70), py(90), px(70), py(10), px(80), py(10))'
+    )
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+          block.value = INITALVALUE
+        end
+
+        block.step = function(a)
+          block.value = math.max(math.min(block.value + a * sim.stepRateS, UPPER), LOWER)
+          return block.value
+        end
+
+        return block
+      ]==]
+    local replaces = {
+      ['INITALVALUE'] = self.parameter.initalValue,
+      ['UPPER'] = self.parameter.upperSaturation,
+      ['LOWER'] = self.parameter.lowerSaturation,
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+
