@@ -67,8 +67,9 @@ the time of one simulation step
         local block = {}
 
         block.start = function()
-          block.n = DELAY / sim.stepRateS - 1
-          assert(block.n <= 0, 'Transport delay time too short')
+          block.n = DELAY / sim.stepRateS
+          assert(block.n > 0, 'Transport delay time too short')
+          print('#', block.n)
           block.q = {}
           for i = 0, block.n - 1 do
             block.q[i] = INITALVALUE
@@ -82,8 +83,8 @@ the time of one simulation step
 
         block.stepLast = function(a)
           assert(block.parent.ellapsedS == sim.stepRateS, 'Transport Delay don\'t work for enabled or subsample subsystems')
-          block.p = (block.p + 1) % block.n
           block.q[block.p] = a
+          block.p = (block.p + 1) % block.n
         end
 
       return block
