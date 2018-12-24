@@ -2,6 +2,7 @@
 -- 30.12.2016 11:58:19 AR V1.0b
 -- 21.05.2017 10:52:23 AR V1.0c
 -- 21.02.2018 08:29:06 AR V1.0d Bug fix
+-- 24.12.2018 08:36:58 AR V1.0e Circular buffer. Include sim cycle time in calculation
 
 generic = {
   parameter = {
@@ -19,7 +20,8 @@ generic = {
   open = function(self)
     gui.add('Info', 'Info', 'Transport Delay', [[
 The Transport Delay block delays the input to
-the output by a specified amount of time
+the output by a specified amount of time plus
+the time of one simulation step
 ]])
     gui.add('Edit', 'EditInitalValue', 'Inital value')
     gui.add('Edit', 'EditDelay', 'Delay [s]')
@@ -38,9 +40,6 @@ the output by a specified amount of time
 
   avatar = function(self)
     return block.getDefaultAvatar(0x50, "", [[
-      --draw.line(px(20), py(80), px(90), py(80))
-      --draw.line(px(30), py(20), px(30), py(90))
-      --draw.line(px(30), py(50), px(90), py(50))
       draw.setColorA(0.7, 0.7, 0.7)
       do
         local p = {}
@@ -68,23 +67,23 @@ the output by a specified amount of time
         local block = {}
 
         block.start = function()
-          block.n = DELAY / sim.stepRateS
+          block.n = DELAY / sim.stepRateS - 1
+          assert(block.n <= 0, 'Transport delay time too short')
           block.q = {}
-          for i = 1, block.n do
+          for i = 0, block.n - 1 do
             block.q[i] = INITALVALUE
           end
+          block.p = 0
         end
 
         block.stepFirst = function()
-          return block.q[block.n]
+          return block.q[block.p % block.n]
         end
 
         block.stepLast = function(a)
           assert(block.parent.ellapsedS == sim.stepRateS, 'Transport Delay don\'t work for enabled or subsample subsystems')
-          for i = block.n, 2, -1  do
-            block.q[i] = block.q[i - 1]
-          end
-          block.q[1] = a
+          block.p = (block.p + 1) % block.n
+          block.q[block.p] = a
         end
 
       return block
