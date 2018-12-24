@@ -1,0 +1,121 @@
+-- 23.12.2018 10:45:17 AR V1.0a
+
+generic = {
+  parameter = {
+    initalValue = 0.0,
+    delayMaxS = 1.0
+  },
+
+  init = function(self)
+    block.setInputsPinCount(2)
+    block.setInputPinName(2, 't')
+    block.setOutputsPinCount(1)
+    block.modifyFlags('BreakAlgebraLoop', true)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Variable Time Delay', [[
+The Time Delay block delays the input to
+the output by the t input in seconds.
+
+If t < 0 then the output is the input delayed by the time of one simulation step.
+If t > max then the output is the input delayed by maximal time.
+
+If t in inbetween of two simulation steps the block interpolates linearly between these steps
+
+]])
+    gui.add('Edit', 'EditInitalValue', 'Inital value')
+    gui.add('Edit', 'EditDelayMax', 'Delay maximal [s]')
+    gui.set('EditInitalValue', 'Number', self.parameter.initalValue)
+    gui.set('EditDelayMax', 'Number', self.parameter.delayMaxS)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.initalValue = gui.get('EditInitalValue', 'Number')
+    self.parameter.delayMax = gui.get('EditDelayMax', 'Number')
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(0x50, "", [[
+      draw.setColorA(0.7, 0.7, 0.7)
+      do
+        local p = {}
+        for i = 0, 60, 0.1 do
+          p[#p + 1] = px(10 + i)
+          p[#p + 1] = py(50 - math.sin(i / 15 * math.pi) * 30)
+        end
+        draw.line(table.unpack(p))
+      end
+      draw.setColorA(0, 0, 0)
+      do
+        local p = {px(10), py(50)}
+        for i = 0, 60, 0.1 do
+          p[#p + 1] = px(30 + i)
+          p[#p + 1] = py(50 - math.sin(i / 15 * math.pi) * 30)
+        end
+        draw.line(table.unpack(p))
+      end
+      draw.text(5, self.avatarBase.calcBoxY(h, #self.inputs, 2), 0, 0, 't', 3)
+    ]])
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+          block.n = DELAYMAX / sim.stepRateS - 1
+          assert(block.n > 0, 'Variable time delay time max too short')
+          block.q = {}
+          for i = 0, block.n - 1 do
+            block.q[i] = INITALVALUE
+          end
+          block.p = 0
+          block.t = 0
+        end
+
+        block.stepFirst = function()
+          local n, q, p, t = block.n, block.q, block.p, block.t
+          if t < 1 then
+            return q[p]
+          end
+          if t > n then
+            return q[(p - 1) % n]
+          end
+          if t == math.floor(t) then
+            return q[(p - t + 1) % n]
+          end
+          local t, f = math.modf(t)
+          local p = block.p
+          local q1 = q[(p - t + 1 - 1) % n]
+          local q2 = q[(p - t + 1    ) % n]
+
+          return (q1 * (1.0 - f) + q2 * f)
+        end
+
+        block.stepLast = function(a, t)
+          assert(block.parent.ellapsedS == sim.stepRateS, 'Transport Delay don\'t work for enabled or subsample subsystems')
+          local n, q, p = block.n, block.q, block.p
+          p = (p + 1) % n
+          q[p] = a
+          block.p = p
+          block.t = t / sim.stepRateS
+        end
+
+      return block
+      ]==]
+    local replaces = {
+      ['INITALVALUE'] = self.parameter.initalValue,
+      ['DELAYMAX'] = self.parameter.delayMaxS
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+
