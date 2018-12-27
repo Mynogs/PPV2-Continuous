@@ -2,6 +2,7 @@
 -- 30.12.2016 10:09:12 AR V1.0b
 -- 21.05.2017 10:49:46 AR V1.0c
 -- 09.07.2017 10:11:29 AR V1.0d
+-- 27.12.2018 11:47:14 AR V1.0e sim.stepRateS -> sim.ellapsedS
 
 generic = {
   parameter = {
@@ -36,7 +37,7 @@ generic = {
         local block = {
 
           step = function(a)
-            local q = (a - (block.a or a)) * sim.stepRateS
+            local q = (a - (block.a or a)) * sim.ellapsedS
             block.a = a
             return q
           end

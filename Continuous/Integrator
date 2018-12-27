@@ -3,6 +3,7 @@
 -- 21.05.2017 10:50:10 AR V1.0c
 -- 09.07.2017 10:09:52 AR V1.0d
 -- 25.09.2018 09:34:57 AR V1.0e Different mode: Add Rectangel and Trapeze
+-- 27.12.2018 11:47:14 AR V1.0e sim.stepRateS -> sim.ellapsedS
 
 generic = {
   parameter = {
@@ -48,7 +49,7 @@ generic = {
           end
 
           block.step = function(a)
-            block.value = block.value + a * sim.stepRateS
+            block.value = block.value + a * sim.ellapsedS
             return block.value
           end
 
@@ -66,7 +67,7 @@ generic = {
             if not block.a then
               block.a = a
             end
-            block.value = block.value + (a + block.a) / 2.0 * sim.stepRateS
+            block.value = block.value + (a + block.a) / 2.0 * sim.ellapsedS
             block.a = a
             return block.value
           end
@@ -85,7 +86,7 @@ generic = {
             if not block.a1 then
               block.a1, block.a2 = a, a
             end
-            block.value = block.value + (block.a2 * (1.0 / 6.0) + block.a1 * (2.0 / 3.0) + a * (1.0 / 6.0)) * sim.stepRateS
+            block.value = block.value + (block.a2 * (1.0 / 6.0) + block.a1 * (2.0 / 3.0) + a * (1.0 / 6.0)) * sim.ellapsedS
             block.a2 = block.a1
             block.a1 = a
             return block.value

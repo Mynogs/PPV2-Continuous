@@ -2,6 +2,7 @@
 -- 30.12.2016 11:16:26 AR V1.0b
 -- 21.05.2017 10:50:32 AR V1.0c
 -- 09.07.2017 10:10:27 AR V1.0d
+-- 27.12.2018 11:47:14 AR V1.0e sim.stepRateS -> sim.ellapsedS
 
 generic = {
   parameter = {
@@ -54,7 +55,7 @@ generic = {
         end
 
         block.step = function(a)
-          block.value = math.max(math.min(block.value + a * sim.stepRateS, UPPER), LOWER)
+          block.value = math.max(math.min(block.value + a * sim.ellapsedS, UPPER), LOWER)
           return block.value
         end
 

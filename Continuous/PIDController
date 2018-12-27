@@ -1,4 +1,5 @@
 -- 02.12.2017 17:32:47 AR V1.0a
+-- 27.12.2018 11:47:14 AR V1.0e sim.stepRateS -> sim.ellapsedS
 
 generic = {
   parameter = {
@@ -50,8 +51,8 @@ generic = {
         end
 
         block.step = function(a)
-          block.i = (block.i or 0) + a * II * sim.stepRateS
-          local d = (a - (block.a or a)) * DD * sim.stepRateS
+          block.i = (block.i or 0) + a * II * sim.ellapsedS
+          local d = (a - (block.a or a)) * DD * sim.ellapsedS
           print(block.i)
 IL
           block.a = a
