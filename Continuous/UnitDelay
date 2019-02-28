@@ -1,6 +1,9 @@
 -- V1.0a AR
 -- 30.12.2016 11:58:19 AR V1.0b
 -- 21.05.2017 10:52:23 AR V1.0c
+-- 23.04.2018 17:09:52 AR V1.0d Datatype to 'nil', 'boolean', 'number', 'string', 'table'
+-- 21.02.2019 08:57:19 AR V1.0e Use deep copy at table unit delay
+-- 28.02.2019 09:23:08 AR V1.0f Deep copy only if nessesary. Prevent fail on missing 'MessagePack' library
 
 generic = {
   parameter = {
@@ -9,7 +12,9 @@ generic = {
 
   init = function(self)
     block.setInputsPinCount(1)
+    block.setInputPinTypeRestrains(1, 'nil', 'boolean', 'number', 'string', 'table')
     block.setOutputsPinCount(1)
+    block.setOutputPinTypeRestrains(1, 'nil', 'boolean', 'number', 'string', 'table')
     block.modifyFlags('BreakAlgebraLoop', true)
     block.modifyFlags('SupressStopFunctionCall', true)
   end,
@@ -17,12 +22,12 @@ generic = {
   open = function(self)
     gui.add('Info', 'Info', 'Unit Delay', 'Delay signal one sample period')
     gui.add('Edit', 'EditInitalValue', 'Inital value')
-    gui.set('EditInitalValue', 'Number', self.parameter.initalValue)
+    gui.set('EditInitalValue', 'Text', self.parameter.initalValue)
     gui.setSize()
   end,
 
   apply = function(self)
-    self.parameter.initalValue = gui.get('EditInitalValue', 'Number')
+    self.parameter.initalValue = gui.get('EditInitalValue', 'Text')
   end,
 
   close = function()
@@ -39,6 +44,10 @@ generic = {
 
         block.start = function()
           block.a = INITALVALUE
+          local ok, mp = pcall(require, 'messagePack')
+          if ok then
+            block.mp = mp
+          end
         end
 
         block.stepFirst = function()
@@ -46,7 +55,11 @@ generic = {
         end
 
         block.stepLast = function(a)
-          block.a = a
+          if type(a) == 'table' then
+            block.a = block.mp.unpack(block.mp.pack(a))
+          else
+            block.a = a
+          end
         end
 
       return block
