@@ -1,4 +1,5 @@
 -- 22.11.2017 18:37:26 AR V1.0a
+-- 18.03.2019 19:25:33 AR V1.0b Optimze
 
 generic = {
   parameter = {
@@ -57,10 +58,8 @@ generic = {
         end
 
         block.stepLast = function(a)
-          for i = LENGTH, 2, -1 do
-            block.q[i] = block.q[i - 1]
-          end
-          block.q[1] = a
+          table.remove(block.q, LENGTH)
+          table.insert(block.q, 1, a)
         end
 
       return block
