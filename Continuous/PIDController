@@ -1,5 +1,6 @@
 -- 02.12.2017 17:32:47 AR V1.0a
 -- 27.12.2018 11:47:14 AR V1.0e sim.stepRateS -> sim.ellapsedS
+-- 25.03.2019 06:41:43 AR V1.0c block.parent.ellapsedS
 
 generic = {
   parameter = {
@@ -51,24 +52,17 @@ generic = {
         end
 
         block.step = function(a)
-          block.i = (block.i or 0) + a * II * sim.ellapsedS
-          local d = (a - (block.a or a)) * DD * sim.ellapsedS
-          print(block.i)
-IL
+          local ellapsedS = block.parent.ellapsedS
+          block.i = (block.i or 0) + a * II * ellapsedS
+          local d = (a - (block.a or a)) * DD * ellapsedS
+          IL
           block.a = a
           return a * PP + block.i + d
         end
 
         return block
       ]==]
-    local iL = [[
-          local iL = ]] .. self.parameter.iL .. '\n' .. [[
-          if block.i > iL then
-            block.i = iL
-          elseif block.i < -iL then
-            block.i = -iL
-          end
-    ]]
+    local iL = "block.i = math.max(math.min(block.i, " .. self.parameter.iL .. "), -" .. self.parameter.iL .. ")"
     local replaces = {
       ['PP'] = self.parameter.p,
       ['II'] = self.parameter.i,

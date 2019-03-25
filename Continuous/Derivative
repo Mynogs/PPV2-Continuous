@@ -3,6 +3,7 @@
 -- 21.05.2017 10:49:46 AR V1.0c
 -- 09.07.2017 10:11:29 AR V1.0d
 -- 27.12.2018 11:47:14 AR V1.0e sim.stepRateS -> sim.ellapsedS
+-- 25.03.2019 06:25:25 AR V1.0f block.parent.ellapsedS
 
 generic = {
   parameter = {
@@ -17,7 +18,7 @@ generic = {
   end,
 
   open = function(self)
-    gui.add('Info', 'Info', 'Derivative', 'Numerical derivative:  da/dt')
+    gui.add('Info', 'Info', 'Derivative', 'Numerical derivative: da/dt')
     gui.setSize()
   end,
 
@@ -34,15 +35,14 @@ generic = {
   generate = function(self)
     local source =
       [==[
-        local block = {
+        local block = {}
 
-          step = function(a)
-            local q = (a - (block.a or a)) * sim.ellapsedS
-            block.a = a
-            return q
-          end
+        block.step = function(a)
+          local q = (a - (block.a or a)) * block.parent.ellapsedS
+          block.a = a
+          return q
+        end
 
-        }
         return block
       ]==]
     return source
