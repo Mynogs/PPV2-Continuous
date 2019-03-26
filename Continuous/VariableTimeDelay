@@ -20,7 +20,7 @@ The Time Delay block delays the input to
 the output by the t input in seconds.
 
 If t < 0 then the output is the input delayed by the time of one simulation step.
-If t > max then the output is the input delayed by maximal time.
+If t > max then the output is the input delayed by max plus the time of one simulation step.
 
 If t in inbetween of two simulation steps the block interpolates linearly between these steps
 
@@ -95,7 +95,6 @@ If t in inbetween of two simulation steps the block interpolates linearly betwee
           local p = block.p
           local q1 = q[(p - t + 1 - 1) % n]
           local q2 = q[(p - t + 1    ) % n]
-
           return (q1 * (1.0 - f) + q2 * f)
         end
 
