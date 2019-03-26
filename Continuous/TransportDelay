@@ -3,6 +3,7 @@
 -- 21.05.2017 10:52:23 AR V1.0c
 -- 21.02.2018 08:29:06 AR V1.0d Bug fix
 -- 24.12.2018 08:36:58 AR V1.0e Circular buffer. Include sim cycle time in calculation
+-- 26.03.2019 08:17:35 AR V1.0f First sample was wrong
 
 generic = {
   parameter = {
@@ -32,7 +33,7 @@ the time of one simulation step
 
   apply = function(self)
     self.parameter.initalValue = gui.get('EditInitalValue', 'Number')
-    self.parameter.delay = gui.get('EditDelay', 'Number')
+    self.parameter.delayS = gui.get('EditDelay', 'Number')
   end,
 
   close = function()
@@ -67,24 +68,26 @@ the time of one simulation step
         local block = {}
 
         block.start = function()
-          block.n = DELAY / sim.stepRateS
+          block.n = DELAY / sim.stepRateS - 1
           assert(block.n > 0, 'Transport delay time too short')
-          print('#', block.n)
           block.q = {}
           for i = 0, block.n - 1 do
             block.q[i] = INITALVALUE
           end
           block.p = 0
+          block.q2 = INITALVALUE
         end
 
         block.stepFirst = function()
-          return block.q[block.p % block.n]
+          return block.q2
         end
 
         block.stepLast = function(a)
           assert(block.parent.ellapsedS == sim.stepRateS, 'Transport Delay don\'t work for enabled or subsample subsystems')
-          block.q[block.p] = a
-          block.p = (block.p + 1) % block.n
+          local q, p = block.q, block.p
+          block.q2 = q[p]
+          q[p] = a
+          block.p = (p + 1) % block.n
         end
 
       return block
